@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Decision Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @media print { .no-print { display: none !important; } }
+    .task-done { opacity: 0.5; text-decoration: line-through; }
+  </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+  <header class="no-print bg-white border-b shadow-sm sticky top-0 z-40">
+    <div class="h-14 flex items-center justify-between px-4 sm:px-6">
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600 p-1 rounded">
+          <i data-lucide="shield-check" class="text-white w-4 h-4"></i>
+        </div>
+        <h1 id="app-title" class="font-black text-sm uppercase tracking-tighter">Decision Engine</h1>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span id="lbl-language" class="text-[10px] font-black uppercase tracking-widest text-slate-400">Language</span>
+          <select id="inp-lang" onchange="setLanguage(this.value)"
+            class="bg-slate-50 border rounded-lg px-2 py-1 text-xs font-bold">
+            <option value="EN" selected>EN</option>
+            <option value="FR">FR</option>
+          </select>
+        </div>
+
+        <a href="index.html" class="text-[10px] font-bold text-slate-400 hover:text-slate-700 uppercase">Home</a>
+
+        <button id="btn-new" onclick="resetDecision()"
+          class="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase">
+          New Draft
+        </button>
+        <button id="btn-export" onclick="exportJSON()"
+          class="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase">
+          Export Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Generic safety reminder -->
+    <div class="px-4 sm:px-6 pb-3">
+      <div id="banner-safe" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-3 py-2 text-[11px] font-bold">
+        Avoid sensitive personal data in decision drafts.
+      </div>
+    </div>
+  </header>
+
+  <main class="flex flex-col lg:flex-row max-w-[1400px] mx-auto p-3 sm:p-4 lg:p-8 gap-6 lg:gap-8">
+
+    <section class="no-print flex-1 space-y-6">
+
+      <!-- Context -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border shadow-sm space-y-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded">01</span>
+          <h2 id="sec-context" class="text-xs font-black uppercase tracking-widest text-slate-400">Context</h2>
+        </div>
+
+        <input id="inp-title" oninput="updateState()" type="text"
+          placeholder="Decision title (short + specific)…"
+          class="w-full text-xl sm:text-2xl font-black border-b-2 border-slate-100 focus:border-indigo-500 outline-none pb-2" />
+
+        <!-- Decision summary -->
+        <div class="space-y-1">
+          <label id="lbl-summary" class="text-[10px] font-bold uppercase text-slate-400">Decision summary</label>
+          <input id="inp-summary" oninput="updateState()" type="text"
+            placeholder="We will ___ so that ___ (one sentence)…"
+            class="w-full bg-slate-50 border rounded-xl p-3 text-sm font-semibold outline-none focus:ring-2 ring-indigo-100" />
+          <div id="tip-summary" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            Tip: write it as a commitment someone can quote.
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label id="lbl-stage" class="text-[10px] font-bold uppercase text-slate-400">Stage</label>
+            <select id="inp-stage" onchange="updateState()"
+              class="w-full bg-slate-50 border rounded-lg p-2 text-sm font-bold">
+              <option value="DRAFT" id="opt-draft">Draft</option>
+              <option value="PROPOSED" id="opt-proposed">For review</option>
+              <option value="DECIDED" id="opt-decided">Committed</option>
+            </select>
+            <div id="tip-stage" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+              Draft → For review → Committed
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label id="lbl-revisit" class="text-[10px] font-bold uppercase text-slate-400">Revisit by</label>
+            <input id="inp-revisit" onchange="updateState()" type="date"
+              class="w-full bg-slate-50 border rounded-lg p-2 text-sm" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Reasoning -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border shadow-sm space-y-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded">02</span>
+          <h2 id="sec-reasoning" class="text-xs font-black uppercase tracking-widest text-slate-400">Reasoning</h2>
+        </div>
+
+        <textarea id="inp-why" oninput="updateState()" rows="4"
+          placeholder="1) Why now? (what changes if we wait a week?)
+2) Trade-offs: what are we choosing + not choosing?
+3) Revisit signal: what would change our mind?"
+          class="w-full bg-slate-50 border rounded-xl p-4 text-sm outline-none focus:ring-2 ring-indigo-100"></textarea>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="chip-whyNow" type="button" onclick="insertScaffold('whyNow')"
+            class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+            + Why now
+          </button>
+          <button id="chip-options" type="button" onclick="insertScaffold('options')"
+            class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+            + Options
+          </button>
+          <button id="chip-risk" type="button" onclick="insertScaffold('risk')"
+            class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+            + Risks / assumptions
+          </button>
+          <button id="chip-changeMind" type="button" onclick="insertScaffold('changeMind')"
+            class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
+            + Revisit signal
+          </button>
+        </div>
+      </div>
+
+      <!-- Next steps -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded">03</span>
+            <h2 id="sec-steps" class="text-xs font-black uppercase tracking-widest text-slate-400">Next steps</h2>
+          </div>
+          <div class="flex gap-2">
+            <button id="btn-addStep" onclick="addTask()"
+              class="text-[10px] bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-bold hover:bg-indigo-100">
+              + Add Step
+            </button>
+            <button id="btn-clearSteps" onclick="clearTasks()"
+              class="text-[10px] bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-bold hover:bg-slate-200">
+              Clear steps
+            </button>
+          </div>
+        </div>
+
+        <div id="tip-steps" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+          Tip: start steps with an owner (“Alex: book room…”, “Sam: draft email…”)
+        </div>
+
+        <div id="task-list" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- Preview card -->
+    <section class="flex-1">
+      <div class="space-y-4 lg:sticky lg:top-20">
+        <div id="card" class="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+          <div id="stage-bar" class="h-2 w-full bg-slate-200"></div>
+
+          <div class="p-6 sm:p-8 space-y-6">
+            <div class="flex justify-between items-start gap-4">
+              <div class="min-w-0">
+                <h2 id="out-title" class="text-xl sm:text-2xl font-black text-slate-900 leading-tight break-words">
+                  Untitled
+                </h2>
+
+                <p id="out-summary" class="text-sm font-semibold text-slate-700 mt-2 leading-relaxed">
+                  ...
+                </p>
+
+                <p id="out-meta" class="text-[10px] font-bold text-slate-400 uppercase mt-2 tracking-widest">
+                  No revisit date set
+                </p>
+              </div>
+
+              <span id="out-stage" class="shrink-0 text-[10px] font-black px-3 py-1 rounded-full bg-slate-100 uppercase">
+                Draft
+              </span>
+            </div>
+
+            <div id="out-why" class="text-slate-600 text-sm leading-relaxed border-l-4 pl-4 border-slate-100">...</div>
+
+            <div class="py-2 border-y border-slate-50 flex items-center justify-between gap-3">
+              <div id="out-readiness" class="text-[10px] font-bold flex items-center gap-1"></div>
+              <div id="lbl-shareReady" class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                Share-ready draft
+              </div>
+            </div>
+
+            <ul id="out-tasks" class="space-y-2 pt-2"></ul>
+          </div>
+
+          <div class="no-print p-4 bg-slate-50 border-t space-y-2">
+            <div id="share-note" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Generates a message you can copy
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button id="btn-shareSlack" onclick="openShare('slack')"
+                class="flex-1 min-w-[140px] flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-black transition">
+                <i data-lucide="slack" class="w-3 h-3"></i> Slack
+              </button>
+              <button id="btn-shareEmail" onclick="openShare('email')"
+                class="flex-1 min-w-[140px] flex items-center justify-center gap-2 bg-white border text-slate-700 py-3 rounded-xl font-bold text-xs uppercase hover:border-indigo-400 transition">
+                <i data-lucide="mail" class="w-3 h-3"></i> Email
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast"
+    class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-800 text-white text-[10px] font-black rounded-full shadow-2xl opacity-0 transition-all pointer-events-none z-50 uppercase tracking-widest"></div>
+
+  <!-- Share modal -->
+  <div id="share-modal" class="fixed inset-0 bg-black/30 hidden items-center justify-center z-50">
+    <div class="bg-white w-[min(860px,92vw)] rounded-2xl shadow-2xl border p-4 space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="text-xs font-black uppercase tracking-widest text-slate-500" id="share-title">Share</div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">•</span>
+          <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate" id="share-sub">Message</div>
+        </div>
+        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div id="share-editable" class="text-xs text-slate-500">
+          Editable message (optional)
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-copyText" onclick="copyFromModal()"
+            class="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase">
+            Copy
+          </button>
+          <button id="btn-selectText" onclick="selectShareText()"
+            class="bg-white border px-3 py-2 rounded-xl text-xs font-bold uppercase">
+            Select
+          </button>
+        </div>
+      </div>
+
+      <textarea id="share-text"
+        class="w-full h-80 bg-slate-50 border rounded-xl p-3 text-xs font-mono outline-none"></textarea>
+
+      <div class="flex gap-2">
+        <button id="btn-closeModal" onclick="closeShareModal()"
+          class="flex-1 bg-white border py-2 rounded-xl text-xs font-bold uppercase">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const I18N = {
+      EN: {
+        appTitle: "Decision Engine",
+        language: "Language",
+        newDraft: "New Draft",
+        exportData: "Export Data",
+        context: "Context",
+        reasoning: "Reasoning",
+        steps: "Next steps",
+        stage: "Stage",
+        revisitBy: "Revisit by",
+        drafting: "Draft",
+        proposed: "For review",
+        decided: "Committed",
+
+        titlePh: "Decision title (short + specific)…",
+
+        summary: "Decision summary",
+        summaryPh: "We will ___ so that ___ (one sentence)…",
+        tipSummary: "Tip: write it as a commitment someone can quote.",
+        outSummaryEmpty: "Add a one-sentence decision summary (quoteable).",
+
+        whyPh: "1) Why now? (what changes if we wait a week?)\n2) Trade-offs: what are we choosing + not choosing?\n3) Revisit signal: what would change our mind?",
+        tipSteps: "Tip: start steps with an owner (“Alex: book room…”, “Sam: draft email…”)",
+        addStep: "+ Add Step",
+        clearSteps: "Clear steps",
+
+        shareReady: "Share-ready draft",
+        shareSlack: "Slack",
+        shareEmail: "Email",
+        shareNote: "Generates a message you can copy",
+
+        chipWhyNow: "+ Why now",
+        chipOptions: "+ Options",
+        chipRisk: "+ Risks / assumptions",
+        chipChangeMind: "+ Revisit signal",
+
+        stepPh: "Owner: action (verb) + what + by when…",
+        removeStepTitle: "Remove step",
+
+        metaNone: "No revisit date set",
+        outWhyEmpty: "Add 2–4 lines: why now + trade-offs + revisit signal.",
+
+        readinessDecidedOpen: "Close open actions (or change stage).",
+        readinessNeedTitle: "Write a specific decision title.",
+        readinessNeedSummary: "Write a one-sentence decision summary.",
+        readinessNeedWhy: "Add 2–4 lines of reasoning.",
+        readinessNeedStep: "Add one next step with an owner.",
+        readinessReady: "Ready to copy & share.",
+
+        toastCleared: "Steps cleared.",
+        toastNew: "New draft.",
+        toastLangEN: "Language: EN",
+        toastLangFR: "Langue : FR",
+        toastExported: "JSON exported.",
+        toastExportFail: "Export failed.",
+
+        modalEditable: "Editable message (optional)",
+        modalCopy: "Copy",
+        modalSelect: "Select",
+        modalClose: "Close",
+        shareSlackTitle: "Slack message",
+        shareEmailTitle: "Email message",
+        copyOk: "Copied.",
+        copyFail: "Select + Ctrl/Cmd+C",
+
+        tipStage: "Draft → For review → Committed",
+
+        // Safety banner
+        safeBanner: "Avoid sensitive personal data in decision drafts."
+      },
+      FR: {
+        appTitle: "Moteur de décision",
+        language: "Langue",
+        newDraft: "Nouveau brouillon",
+        exportData: "Exporter",
+        context: "Contexte",
+        reasoning: "Raisonnement",
+        steps: "Prochaines étapes",
+        stage: "Statut",
+        revisitBy: "À revoir avant",
+
+        drafting: "Brouillon",
+        proposed: "Pour avis",
+        decided: "Actée",
+
+        titlePh: "Titre de la décision (court + précis)…",
+
+        summary: "Résumé de la décision",
+        summaryPh: "Nous allons ___ afin de ___ (une phrase)…",
+        tipSummary: "Astuce : écrivez-le comme un engagement qu’on peut citer.",
+        outSummaryEmpty: "Ajoutez un résumé en une phrase (citable).",
+
+        whyPh: "1) Pourquoi maintenant ? (qu’est-ce qui change si on attend une semaine ?)\n2) Arbitrages : que choisissons-nous + que ne choisissons-nous pas ?\n3) Signal de révision : qu’est-ce qui nous ferait changer d’avis ?",
+        tipSteps: "Astuce : commencez par un responsable (« Alex : réserver… », « Sam : rédiger… »)",
+        addStep: "+ Ajouter une étape",
+        clearSteps: "Effacer les étapes",
+
+        shareReady: "Brouillon prêt à partager",
+        shareSlack: "Slack",
+        shareEmail: "Email",
+        shareNote: "Génère un message à copier",
+
+        chipWhyNow: "+ Pourquoi maintenant",
+        chipOptions: "+ Options",
+        chipRisk: "+ Risques / hypothèses",
+        chipChangeMind: "+ Signal de révision",
+
+        stepPh: "Responsable : action (verbe) + quoi + pour quand…",
+        removeStepTitle: "Supprimer l’étape",
+
+        metaNone: "Pas de date de révision",
+        outWhyEmpty: "Ajoutez 2–4 lignes : pourquoi maintenant + arbitrages + signal de révision.",
+
+        readinessDecidedOpen: "Clôturez les actions ouvertes (ou changez le statut).",
+        readinessNeedTitle: "Écrivez un titre précis.",
+        readinessNeedSummary: "Écrivez un résumé en une phrase.",
+        readinessNeedWhy: "Ajoutez 2–4 lignes de raisonnement.",
+        readinessNeedStep: "Ajoutez une étape avec un responsable.",
+        readinessReady: "Prêt à copier & partager.",
+
+        toastCleared: "Étapes effacées.",
+        toastNew: "Nouveau brouillon.",
+        toastLangEN: "Language: EN",
+        toastLangFR: "Langue : FR",
+        toastExported: "JSON exporté.",
+        toastExportFail: "Export impossible.",
+
+        modalEditable: "Message modifiable (optionnel)",
+        modalCopy: "Copier",
+        modalSelect: "Sélectionner",
+        modalClose: "Fermer",
+        shareSlackTitle: "Message Slack",
+        shareEmailTitle: "Message email",
+        copyOk: "Copié.",
+        copyFail: "Sélectionner + Ctrl/Cmd+C",
+
+        tipStage: "Brouillon → Pour avis → Actée",
+
+        safeBanner: "Évitez les données personnelles sensibles dans les brouillons."
+      }
+    };
+
+    const DEFAULT_STATE = {
+      lang: "EN",
+      title: "",
+      summary: "",
+      stage: "DRAFT",
+      revisit: "",
+      why: "",
+      tasks: []
+    };
+
+    const STORAGE_KEY = "staging_v17_site";
+    const STAGE_COLORS = { DRAFT: "bg-slate-300", PROPOSED: "bg-amber-400", DECIDED: "bg-emerald-500" };
+
+    let state = { ...DEFAULT_STATE };
+    let lastShareMode = "slack";
+
+    window.onload = () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = {
+            ...DEFAULT_STATE,
+            ...parsed,
+            tasks: Array.isArray(parsed?.tasks) ? parsed.tasks : []
+          };
+        }
+      } catch {
+        state = { ...DEFAULT_STATE };
+      }
+
+      document.getElementById("inp-lang").value = state.lang || "EN";
+      applyLanguageUI();
+      syncUI();
+      renderPreview();
+      if (window.lucide) lucide.createIcons();
+
+      document.getElementById("share-modal").addEventListener("click", (e) => {
+        if (e.target.id === "share-modal") closeShareModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeShareModal();
+      });
+    };
+
+    function t(key) {
+      const lang = state.lang === "FR" ? "FR" : "EN";
+      return I18N[lang][key] ?? I18N.EN[key] ?? "";
+    }
+
+    function stageLabel(stage) {
+      const lang = state.lang === "FR" ? "FR" : "EN";
+      const map = (lang === "FR")
+        ? { DRAFT: I18N.FR.drafting, PROPOSED: I18N.FR.proposed, DECIDED: I18N.FR.decided }
+        : { DRAFT: I18N.EN.drafting, PROPOSED: I18N.EN.proposed, DECIDED: I18N.EN.decided };
+      return map[stage] || stage;
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function setLanguage(lang) {
+      state.lang = (lang === "FR") ? "FR" : "EN";
+      save();
+      applyLanguageUI();
+      renderTaskList();
+      renderPreview();
+      showToast(state.lang === "FR" ? t("toastLangFR") : t("toastLangEN"));
+    }
+
+    function applyLanguageUI() {
+      document.documentElement.lang = (state.lang === "FR") ? "fr" : "en";
+      document.title = t("appTitle");
+
+      document.getElementById("app-title").textContent = t("appTitle");
+      document.getElementById("lbl-language").textContent = t("language");
+      document.getElementById("btn-new").textContent = t("newDraft");
+      document.getElementById("btn-export").textContent = t("exportData");
+
+      document.getElementById("sec-context").textContent = t("context");
+      document.getElementById("sec-reasoning").textContent = t("reasoning");
+      document.getElementById("sec-steps").textContent = t("steps");
+
+      document.getElementById("lbl-stage").textContent = t("stage");
+      document.getElementById("lbl-revisit").textContent = t("revisitBy");
+
+      document.getElementById("opt-draft").textContent = t("drafting");
+      document.getElementById("opt-proposed").textContent = t("proposed");
+      document.getElementById("opt-decided").textContent = t("decided");
+      document.getElementById("tip-stage").textContent = t("tipStage");
+
+      document.getElementById("inp-title").placeholder = t("titlePh");
+      document.getElementById("lbl-summary").textContent = t("summary");
+      document.getElementById("inp-summary").placeholder = t("summaryPh");
+      document.getElementById("tip-summary").textContent = t("tipSummary");
+
+      document.getElementById("inp-why").placeholder = t("whyPh");
+      document.getElementById("tip-steps").textContent = t("tipSteps");
+      document.getElementById("btn-addStep").textContent = t("addStep");
+      document.getElementById("btn-clearSteps").textContent = t("clearSteps");
+      document.getElementById("lbl-shareReady").textContent = t("shareReady");
+      document.getElementById("share-note").textContent = t("shareNote");
+
+      document.getElementById("chip-whyNow").textContent = t("chipWhyNow");
+      document.getElementById("chip-options").textContent = t("chipOptions");
+      document.getElementById("chip-risk").textContent = t("chipRisk");
+      document.getElementById("chip-changeMind").textContent = t("chipChangeMind");
+
+      document.getElementById("share-editable").textContent = t("modalEditable");
+      document.getElementById("btn-copyText").textContent = t("modalCopy");
+      document.getElementById("btn-selectText").textContent = t("modalSelect");
+      document.getElementById("btn-closeModal").textContent = t("modalClose");
+
+      document.getElementById("banner-safe").textContent = t("safeBanner");
+    }
+
+    function updateState() {
+      state.title = document.getElementById("inp-title").value ?? "";
+      state.summary = document.getElementById("inp-summary").value ?? "";
+      state.stage = document.getElementById("inp-stage").value ?? "DRAFT";
+      state.revisit = document.getElementById("inp-revisit").value ?? "";
+      state.why = document.getElementById("inp-why").value ?? "";
+      save();
+      renderPreview();
+    }
+
+    function addTask() {
+      state.tasks.push({ id: Date.now() + Math.floor(Math.random()*1000), text: "", done: false });
+      save();
+      renderTaskList();
+    }
+
+    function clearTasks() {
+      state.tasks = [];
+      save();
+      renderTaskList();
+      showToast(t("toastCleared"));
+    }
+
+    function removeTask(id) {
+      state.tasks = state.tasks.filter(task => task.id !== id);
+      save();
+      renderTaskList();
+    }
+
+    function toggleTask(id) {
+      const task = state.tasks.find(x => x.id === id);
+      if (task) task.done = !task.done;
+      save();
+      renderTaskList();
+    }
+
+    function updateTaskText(id, val) {
+      const task = state.tasks.find(x => x.id === id);
+      if (task) task.text = String(val ?? "");
+      save();
+      renderPreview();
+    }
+
+    function renderTaskList() {
+      const container = document.getElementById("task-list");
+      container.innerHTML = "";
+
+      for (const task of state.tasks) {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!task.done;
+        cb.className = "w-4 h-4 rounded text-indigo-600";
+        cb.addEventListener("change", () => toggleTask(task.id));
+
+        const txt = document.createElement("input");
+        txt.type = "text";
+        txt.value = task.text ?? "";
+        txt.placeholder = t("stepPh");
+        txt.className = "flex-1 bg-transparent border-b border-slate-100 focus:border-indigo-200 outline-none text-sm py-1";
+        txt.addEventListener("input", (e) => updateTaskText(task.id, e.target.value));
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "text-slate-200 hover:text-red-400 px-2";
+        del.textContent = "×";
+        del.title = t("removeStepTitle");
+        del.addEventListener("click", () => removeTask(task.id));
+
+        row.appendChild(cb);
+        row.appendChild(txt);
+        row.appendChild(del);
+        container.appendChild(row);
+      }
+
+      renderPreview();
+    }
+
+    function parseOwnerLine(text) {
+      const raw = String(text || "").trim();
+      if (!raw) return null;
+
+      const m = raw.match(/^([^:]{1,24})\s*:\s*(.+)$/);
+      if (!m) return { owner: "", action: raw };
+
+      const owner = (m[1] || "").trim();
+      const action = (m[2] || "").trim();
+
+      const ownerLooksOk = owner.length >= 2 && owner.length <= 24 && !owner.includes(" ");
+      if (!ownerLooksOk) return { owner: "", action: raw };
+
+      return { owner, action };
+    }
+
+    function formatLocalDate(iso) {
+      try {
+        const locale = state.lang === "FR" ? "fr-BE" : "en-GB";
+        return new Date(iso).toLocaleDateString(locale);
+      } catch {
+        return iso;
+      }
+    }
+
+    function readinessStatus() {
+      const missingTitle = !String(state.title || "").trim();
+      const missingSummary = !String(state.summary || "").trim();
+      const missingWhy = !String(state.why || "").trim();
+
+      const hasSteps = state.tasks.some(tsk => (tsk.text || "").trim().length > 0);
+      const pending = state.tasks.filter(tsk => !tsk.done && (tsk.text || "").trim()).length;
+
+      if (state.stage === "DECIDED" && pending > 0) {
+        return { type: "warn", icon: "alert-circle", text: t("readinessDecidedOpen") };
+      }
+      if (missingTitle) return { type: "edit", icon: "pencil", text: t("readinessNeedTitle") };
+      if (missingSummary) return { type: "edit", icon: "pencil", text: t("readinessNeedSummary") };
+      if (missingWhy) return { type: "edit", icon: "clipboard-list", text: t("readinessNeedWhy") };
+      if (!hasSteps) return { type: "edit", icon: "clipboard-list", text: t("readinessNeedStep") };
+
+      return { type: "ok", icon: "check", text: t("readinessReady") };
+    }
+
+    function renderPreview() {
+      document.getElementById("out-title").textContent =
+        (state.title || "").trim() || (state.lang === "FR" ? "Décision sans titre" : "Untitled decision");
+
+      const summaryOut = document.getElementById("out-summary");
+      summaryOut.textContent = (state.summary || "").trim() || t("outSummaryEmpty");
+
+      document.getElementById("out-stage").textContent = stageLabel(state.stage || "DRAFT");
+
+      document.getElementById("out-why").textContent = (state.why || "").trim() || t("outWhyEmpty");
+
+      document.getElementById("out-meta").textContent =
+        state.revisit ? `${t("revisitBy")}: ${formatLocalDate(state.revisit)}` : t("metaNone");
+
+      const stageBar = document.getElementById("stage-bar");
+      stageBar.className = `h-2 w-full ${STAGE_COLORS[state.stage] || "bg-slate-200"}`;
+
+      const readiness = document.getElementById("out-readiness");
+      readiness.innerHTML = "";
+      const r = readinessStatus();
+
+      if (r.type === "warn") readiness.className = "text-[10px] font-bold text-amber-600 flex items-center gap-1";
+      else if (r.type === "ok") readiness.className = "text-[10px] font-bold text-emerald-600 flex items-center gap-1";
+      else readiness.className = "text-[10px] font-bold text-slate-500 flex items-center gap-1";
+
+      readiness.appendChild(iconEl(r.icon));
+      readiness.appendChild(textEl(r.text));
+
+      const list = document.getElementById("out-tasks");
+      list.innerHTML = "";
+      for (const task of state.tasks) {
+        const li = document.createElement("li");
+        li.className = `flex items-start gap-2 text-xs ${task.done ? "task-done text-slate-300" : "text-slate-600"}`;
+
+        const ic = document.createElement("i");
+        ic.setAttribute("data-lucide", task.done ? "check-circle" : "circle");
+        ic.className = "w-3 h-3 mt-0.5";
+
+        const wrap = document.createElement("span");
+        wrap.className = "leading-relaxed";
+
+        const parsed = parseOwnerLine(task.text);
+        if (!parsed || (!parsed.owner && !parsed.action)) {
+          wrap.textContent = "...";
+        } else if (parsed.owner) {
+          const owner = document.createElement("span");
+          owner.className = "font-black text-slate-700";
+          owner.textContent = parsed.owner;
+
+          const colon = document.createElement("span");
+          colon.textContent = ": ";
+
+          const action = document.createElement("span");
+          action.textContent = parsed.action || "";
+
+          wrap.appendChild(owner);
+          wrap.appendChild(colon);
+          wrap.appendChild(action);
+        } else {
+          wrap.textContent = parsed.action;
+        }
+
+        li.appendChild(ic);
+        li.appendChild(wrap);
+        list.appendChild(li);
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function iconEl(name) {
+      const i = document.createElement("i");
+      i.setAttribute("data-lucide", name);
+      i.className = "w-3 h-3";
+      return i;
+    }
+    function textEl(txt) {
+      const s = document.createElement("span");
+      s.textContent = txt;
+      return s;
+    }
+
+    function syncUI() {
+      document.getElementById("inp-title").value = state.title ?? "";
+      document.getElementById("inp-summary").value = state.summary ?? "";
+      document.getElementById("inp-stage").value = state.stage ?? "DRAFT";
+      document.getElementById("inp-revisit").value = state.revisit ?? "";
+      document.getElementById("inp-why").value = state.why ?? "";
+      renderTaskList();
+    }
+
+    function showToast(msg) {
+      const tEl = document.getElementById("toast");
+      tEl.textContent = String(msg ?? "");
+      tEl.style.opacity = "1";
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => tEl.style.opacity = "0", 1200);
+    }
+
+    function insertScaffold(kind) {
+      const el = document.getElementById("inp-why");
+      const current = el.value || "";
+      const blocks = (state.lang === "FR") ? {
+        whyNow: "Pourquoi maintenant : …",
+        options: "Options envisagées : … (pourquoi celle-ci ?)",
+        risk: "Risques / hypothèses : … (comment le détecter tôt)",
+        changeMind: "Signal de révision : … (ce qui nous ferait changer d’avis)"
+      } : {
+        whyNow: "Why now: …",
+        options: "Options considered: … (why this one?)",
+        risk: "Risks / assumptions: … (how we’ll notice early)",
+        changeMind: "Revisit signal: … (what would change our mind)"
+      };
+
+      const add = blocks[kind] || "";
+      const sep = current.trim().length ? "\n" : "";
+      el.value = current + sep + add;
+      el.focus();
+      el.selectionStart = el.selectionEnd = el.value.length;
+      updateState();
+    }
+
+    function splitOpenSteps() {
+      const tasks = Array.isArray(state.tasks) ? state.tasks : [];
+      return tasks
+        .filter(t => !t.done && (t.text || "").trim())
+        .map(t => String(t.text || "").trim());
+    }
+
+    function formatSlackStep(line) {
+      const parsed = parseOwnerLine(line);
+      if (parsed?.owner) return `• *${parsed.owner}:* ${parsed.action}`;
+      return `• ${line}`;
+    }
+
+    function buildDecisionMessage(mode) {
+      const lang = state.lang === "FR" ? "FR" : "EN";
+      const title = (state.title || "").trim() || (lang === "FR" ? "Décision" : "Decision");
+      const summary = (state.summary || "").trim();
+      const stage = stageLabel(state.stage || "DRAFT");
+      const revisit = (state.revisit || "").trim();
+      const why = (state.why || "").trim();
+      const steps = splitOpenSteps();
+
+      if (mode === "slack") {
+        const lines = [];
+        lines.push(lang === "FR" ? `*Décision :* ${title}` : `*Decision:* ${title}`);
+        if (summary) lines.push(lang === "FR" ? `*Résumé :* ${summary}` : `*Summary:* ${summary}`);
+        lines.push(lang === "FR" ? `*Statut :* \`${stage}\`` : `*Stage:* \`${stage}\``);
+        if (revisit) lines.push(lang === "FR" ? `*À revoir avant :* ${revisit}` : `*Revisit by:* ${revisit}`);
+        lines.push("");
+
+        lines.push(lang === "FR" ? `*Raisonnement*` : `*Reasoning*`);
+        lines.push(why
+          ? why.split("\n").map(l => `> ${l}`).join("\n")
+          : (lang === "FR"
+              ? `> 1) Pourquoi maintenant ? …\n> 2) Arbitrages : …\n> 3) Signal de révision : …`
+              : `> 1) Why now? …\n> 2) Trade-offs: …\n> 3) Revisit signal: …`)
+        );
+        lines.push("");
+
+        lines.push(lang === "FR" ? `*Prochaines étapes (ouvertes)*` : `*Next steps (open)*`);
+        if (steps.length) steps.forEach(s => lines.push(formatSlackStep(s)));
+        else lines.push(lang === "FR" ? `• (Ajouter une étape : responsable + action.)` : `• (Add one step: owner + action.)`);
+
+        return lines.join("\n");
+      }
+
+      const lines = [];
+      lines.push(lang === "FR" ? `Objet : Décision — ${title}` : `Subject: Decision — ${title}`);
+      lines.push("");
+      lines.push(lang === "FR" ? `Décision : ${title}` : `Decision: ${title}`);
+      if (summary) lines.push(lang === "FR" ? `Résumé : ${summary}` : `Summary: ${summary}`);
+      lines.push(lang === "FR" ? `Statut : ${stage}` : `Stage: ${stage}`);
+      if (revisit) lines.push(lang === "FR" ? `À revoir avant : ${revisit}` : `Revisit by: ${revisit}`);
+      lines.push("");
+      lines.push(lang === "FR" ? `Raisonnement` : `Reasoning`);
+      lines.push(lang === "FR" ? `----------` : `---------`);
+      lines.push(why || (lang === "FR"
+        ? `1) Pourquoi maintenant ? …\n2) Arbitrages : …\n3) Signal de révision : …`
+        : `1) Why now? …\n2) Trade-offs: …\n3) Revisit signal: …`));
+      lines.push("");
+      lines.push(lang === "FR" ? `Prochaines étapes (ouvertes)` : `Next steps (open)`);
+      lines.push(lang === "FR" ? `------------------------` : `----------------`);
+      if (steps.length) steps.forEach(s => lines.push(`- ${s}`));
+      else lines.push(lang === "FR" ? `- (Ajouter une étape : responsable + action.)` : `- (Add one step: owner + action.)`);
+
+      return lines.join("\n");
+    }
+
+    function openShare(mode) {
+      lastShareMode = mode;
+      const lang = state.lang === "FR" ? "FR" : "EN";
+
+      document.getElementById("share-title").textContent =
+        (mode === "slack") ? t("shareSlackTitle") : t("shareEmailTitle");
+
+      document.getElementById("share-sub").textContent =
+        (lang === "FR") ? "Génère un message à copier (modifiez si besoin)" : "Generates a message to copy (edit if needed)";
+
+      const ta = document.getElementById("share-text");
+      ta.value = buildDecisionMessage(mode);
+
+      const modal = document.getElementById("share-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      setTimeout(() => {
+        ta.focus();
+        ta.setSelectionRange(0, ta.value.length);
+      }, 0);
+    }
+
+    function closeShareModal() {
+      const modal = document.getElementById("share-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function selectShareText() {
+      const ta = document.getElementById("share-text");
+      ta.focus();
+      ta.select();
+    }
+
+    async function copyFromModal() {
+      const ta = document.getElementById("share-text");
+      const text = ta.value || "";
+
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast(t("copyOk"));
+          return;
+        } catch (_) {}
+      }
+
+      try {
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand && document.execCommand("copy");
+        showToast(ok ? t("copyOk") : t("copyFail"));
+      } catch {
+        selectShareText();
+        showToast(t("copyFail"));
+      }
+    }
+
+    function resetDecision() {
+      state = { lang: state.lang || "EN", title: "", summary: "", stage: "DRAFT", revisit: "", why: "", tasks: [] };
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      document.getElementById("inp-title").value = "";
+      document.getElementById("inp-summary").value = "";
+      document.getElementById("inp-stage").value = "DRAFT";
+      document.getElementById("inp-revisit").value = "";
+      document.getElementById("inp-why").value = "";
+      save();
+      renderTaskList();
+      renderPreview();
+      showToast(t("toastNew"));
+    }
+
+    function exportJSON() {
+      try {
+        const safeTitle = (state.title || "untitled")
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        const filename = `decision-${safeTitle || "untitled"}.json`;
+
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+        showToast(t("toastExported"));
+      } catch {
+        showToast(t("toastExportFail"));
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Decision Engine — Clear decisions, shareable in email</title>
+  <meta name="description" content="A lightweight decision drafting tool that turns messy decisions into clear, shareable messages (email or chat). Local-first. No login." />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600 p-1.5 rounded-lg shadow-sm"></div>
+        <div class="font-black tracking-tight">Decision Engine</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="app.html" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black">Open the tool</a>
+        <a href="#how" class="px-3 py-2 rounded-xl bg-white border text-slate-700 text-xs font-black uppercase tracking-widest hover:border-indigo-400">How it works</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <section class="grid lg:grid-cols-2 gap-8 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest">
+          Local-first • No login • Copy-ready
+        </div>
+        <h1 class="mt-4 text-4xl sm:text-5xl font-black leading-tight tracking-tight">
+          Turn decisions into <span class="text-indigo-700">clear messages</span> your team can act on.
+        </h1>
+        <p class="mt-4 text-slate-600 text-lg leading-relaxed">
+          Draft a decision record (title, one-sentence summary, reasoning, next steps, revisit date),
+          then generate a message you can copy into email.
+        </p>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="app.html" class="px-5 py-3 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black">
+            Open Decision Engine
+          </a>
+          <a href="#privacy" class="px-5 py-3 rounded-2xl bg-white border font-black text-sm uppercase tracking-widest hover:border-indigo-400">
+            Privacy & safety
+          </a>
+        </div>
+
+        <div class="mt-6 grid sm:grid-cols-3 gap-3">
+          <div class="bg-white border rounded-2xl p-4 shadow-sm">
+            <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Output</div>
+            <div class="mt-1 font-black">Email-ready</div>
+            <div class="mt-1 text-sm text-slate-600">Generate a subject + body you can copy.</div>
+          </div>
+          <div class="bg-white border rounded-2xl p-4 shadow-sm">
+            <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Quality</div>
+            <div class="mt-1 font-black">Readiness check</div>
+            <div class="mt-1 text-sm text-slate-600">Prompts you to add what’s missing.</div>
+          </div>
+          <div class="bg-white border rounded-2xl p-4 shadow-sm">
+            <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Control</div>
+            <div class="mt-1 font-black">Export JSON</div>
+            <div class="mt-1 text-sm text-slate-600">Keep a record in your own system.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border rounded-3xl shadow-xl overflow-hidden">
+        <div class="h-2 bg-indigo-600"></div>
+        <div class="p-6 sm:p-8">
+          <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">What you’ll send</div>
+          <div class="mt-3 bg-slate-50 border rounded-2xl p-4">
+            <div class="text-xs font-black text-slate-900">Subject: Decision — Extend clinic hours pilot (example)</div>
+            <div class="mt-3 text-xs text-slate-700 whitespace-pre-line leading-relaxed">
+Decision: Extend hours pilot to 20:00 on Tuesdays for 6 weeks
+Summary: We will extend Tuesday hours so that we reduce backlog and learn true demand.
+
+Reasoning:
+1) Why now: backlog is rising; waiting increases cancellations.
+2) Trade-offs: fewer admin slots on Tuesday afternoons.
+3) Revisit signal: if no-show rate rises above 15% for 2 weeks, we revert.
+
+Next steps (open):
+- Alex: update rota by Friday
+- Sam: inform reception team today
+            </div>
+          </div>
+          <div class="mt-4 text-[11px] text-slate-600">
+            Designed for teams that live in email and need decisions to be <span class="font-bold">quick, clear, and accountable</span>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="mt-14 sm:mt-20">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded">01</span>
+        <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">How it works</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="bg-white border rounded-2xl p-5 shadow-sm">
+          <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Step 1</div>
+          <div class="mt-2 font-black text-lg">Draft the decision</div>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+            Title + one-sentence summary. Add reasoning and a revisit date if it’s uncertain.
+          </p>
+        </div>
+        <div class="bg-white border rounded-2xl p-5 shadow-sm">
+          <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Step 2</div>
+          <div class="mt-2 font-black text-lg">Assign next steps</div>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+            Write steps starting with an owner (e.g., “Alex: …”). The preview highlights owners for readability.
+          </p>
+        </div>
+        <div class="bg-white border rounded-2xl p-5 shadow-sm">
+          <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Step 3</div>
+          <div class="mt-2 font-black text-lg">Copy the message</div>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+            Generate an email-ready message and paste it into your email client.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy" class="mt-14 sm:mt-20">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded">02</span>
+        <h2 class="text-xs font-black uppercase tracking-widest text-slate-400">Privacy & safety</h2>
+      </div>
+
+      <div class="bg-white border rounded-2xl p-6 shadow-sm">
+        <ul class="space-y-3 text-sm text-slate-700 leading-relaxed">
+          <li><span class="font-black">Local-first:</span> by default, your draft is stored only in your browser (localStorage).</li>
+          <li><span class="font-black">No accounts:</span> no login, no user tracking required to use the tool.</li>
+          <li><span class="font-black">Data hygiene:</span> avoid sensitive personal data in decision drafts. Treat this as an operational drafting aid.</li>
+          <li><span class="font-black">Portability:</span> you can export JSON to store decisions in your own systems.</li>
+        </ul>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="app.html" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-black">Open the tool</a>
+          <a href="privacy.html" class="px-4 py-2 rounded-xl bg-white border text-slate-700 text-xs font-black uppercase tracking-widest hover:border-indigo-400">Privacy page</a>
+          <a href="terms.html" class="px-4 py-2 rounded-xl bg-white border text-slate-700 text-xs font-black uppercase tracking-widest hover:border-indigo-400">Terms</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-14 sm:mt-20 pt-8 border-t text-xs text-slate-500 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+      <div>© <span id="yy"></span> Decision Engine</div>
+      <div class="flex gap-3">
+        <a class="hover:text-slate-700" href="privacy.html">Privacy</a>
+        <a class="hover:text-slate-700" href="terms.html">Terms</a>
+        <a class="hover:text-slate-700" href="app.html">Open</a>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("yy").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
