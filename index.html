@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Decision Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600 w-3 h-3 rounded"></div>
+        <div class="font-black tracking-tight">Decision Engine</div>
+      </div>
+      <a href="app.html"
+         class="px-4 py-2 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest hover:bg-black">
+        Open the tool
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <section class="grid lg:grid-cols-2 gap-10 items-start">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-800 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest">
+          No login • Copy into email • Saved in your browser
+        </div>
+
+        <h1 class="mt-4 text-4xl sm:text-5xl font-black leading-tight tracking-tight">
+          Write the decision once.<br />
+          <span class="text-indigo-700">Send a clear email</span> people can act on.
+        </h1>
+
+        <p class="mt-4 text-slate-600 text-lg leading-relaxed">
+          Fill in what you decided, why, and who does what next — then copy‑paste a ready‑to‑send message into email.
+        </p>
+
+        <ul class="mt-6 space-y-3 text-slate-700">
+          <li class="flex gap-3">
+            <span class="mt-2 w-2 h-2 rounded-full bg-slate-900"></span>
+            <div><span class="font-black">Clear why:</span> reduce “why are we doing this?” follow‑ups.</div>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-2 w-2 h-2 rounded-full bg-slate-900"></span>
+            <div><span class="font-black">Clear owners:</span> next steps start with a name (e.g., “Alex: …”).</div>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-2 w-2 h-2 rounded-full bg-slate-900"></span>
+            <div><span class="font-black">Clear timing:</span> add a revisit date when you’re not fully sure yet.</div>
+          </li>
+        </ul>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="app.html"
+             class="px-6 py-3 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black">
+            Open the tool
+          </a>
+          <a href="privacy.html"
+             class="px-6 py-3 rounded-2xl bg-white border font-black text-sm uppercase tracking-widest hover:border-indigo-400">
+            Privacy
+          </a>
+        </div>
+
+        <p class="mt-4 text-[11px] text-slate-500 font-semibold">
+          Drafts are stored in your browser (localStorage). No accounts. Nothing is sent anywhere unless you paste it into an email.
+        </p>
+      </div>
+
+      <div class="bg-white border rounded-3xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b bg-slate-50">
+          <div class="text-[11px] font-black uppercase tracking-widest text-slate-500">Example email</div>
+        </div>
+        <pre class="p-5 text-xs leading-relaxed whitespace-pre-wrap text-slate-800 font-mono">Subject: DECISION — Reminder calls for missed appointments
+
+Decision: Reminder calls for missed appointments
+Status: Ready for review
+Revisit by: 2026-02-01
+
+Reasoning
+---------
+1) Why now? Missed appointments increased this month.
+2) Trade-offs: more reminder workload, fewer no-shows.
+3) Revisit signal: if reminders increase complaints or don’t reduce no-shows.
+
+Next steps (open)
+----------------
+- Alex: draft the new reminder text by Friday
+- Sam: confirm the call list workflow by Tuesday</pre>
+
+        <div class="px-5 py-4 border-t bg-white flex items-center justify-between">
+          <div class="text-[11px] text-slate-500 font-semibold">
+            Want to try it? It takes ~2 minutes.
+          </div>
+          <a href="app.html"
+             class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700">
+            Start
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-12 pt-6 border-t text-[12px] text-slate-500 flex flex-col sm:flex-row gap-3 justify-between">
+      <div class="font-semibold">© <span id="y"></span> Decision Engine</div>
+      <div class="flex gap-4 font-semibold">
+        <a class="hover:text-slate-900" href="terms.html">Terms</a>
+        <a class="hover:text-slate-900" href="privacy.html">Privacy</a>
+        <a class="hover:text-slate-900" href="app.html">Open the tool</a>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
